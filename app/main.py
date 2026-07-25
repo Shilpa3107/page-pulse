@@ -1,11 +1,23 @@
+import time
+import uuid
 from urllib.parse import urlparse
 
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 
 from app.core.audit import audit_url, AuditResult
+from app.core.ratelimit import is_rate_limited
+
+structlog.configure(
+    processors=[
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer(),
+    ]
+)
+logger = structlog.get_logger()
 
 app = FastAPI(title="Page Pulse")
 
@@ -27,6 +39,30 @@ def error_response(status_code: int, code: str, message: str) -> JSONResponse:
         status_code=status_code,
         content={"error": {"code": code, "message": message}},
     )
+
+
+@app.middleware("http")
+async def request_context_middleware(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    start = time.perf_counter()
+    client_ip = request.client.host if request.client else "unknown"
+
+    log = logger.bind(request_id=request_id, path=request.url.path, client_ip=client_ip)
+    log.info("request_started")
+
+    if request.url.path == "/audit":
+        limited = await is_rate_limited(client_ip)
+        if limited:
+            log.info("rate_limit_exceeded")
+            return error_response(429, "RATE_LIMITED", "Too many requests. Please slow down.")
+
+    response = await call_next(request)
+
+    duration_ms = round((time.perf_counter() - start) * 1000, 2)
+    log.info("request_finished", status_code=response.status_code, duration_ms=duration_ms)
+
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 @app.exception_handler(RequestValidationError)
