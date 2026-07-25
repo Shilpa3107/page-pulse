@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
+from fastapi.responses import HTMLResponse
 
 from app.core.audit import audit_url, AuditResult
 from app.core.ratelimit import is_rate_limited
@@ -79,3 +80,19 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 @app.post("/audit", response_model=AuditResult)
 async def audit(payload: AuditRequest) -> AuditResult:
     return await audit_url(payload.url)
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return """
+    <html>
+        <head><title>Page Pulse</title></head>
+        <body style="font-family: sans-serif; max-width: 600px; margin: 60px auto;">
+            <h1>Page Pulse</h1>
+            <p>A production-grade URL audit API. POST a URL to <code>/audit</code> to get status, response time, and page metadata.</p>
+            <p>See <a href="/docs">/docs</a> for the full API contract.</p>
+            <footer style="margin-top: 40px; font-size: 0.9em; color: #666;">
+                Built for <a href="https://digitalheroesco.com" target="_blank">Digital Heroes Training Task</a>
+            </footer>
+        </body>
+    </html>
+    """
