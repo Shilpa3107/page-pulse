@@ -1,6 +1,16 @@
 import time
 import httpx
 from pydantic import BaseModel
+import asyncio
+import time
+import httpx
+from pydantic import BaseModel
+
+# Shared across all requests — created once at import time, not per-call.
+CONCURRENCY_LIMIT = 10
+_semaphore = asyncio.Semaphore(CONCURRENCY_LIMIT)
+
+TIMEOUT = httpx.Timeout(connect=5.0, read=10.0, write=5.0, pool=5.0)
 
 
 class AuditResult(BaseModel):
@@ -16,8 +26,24 @@ class AuditResult(BaseModel):
 async def audit_url(url: str) -> AuditResult:
     start = time.perf_counter()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
+    async with _semaphore:
+        try:
+            async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+                response = await client.get(url)
+        except httpx.TimeoutException:
+            return AuditResult(
+                url=url, status_code=None,
+                response_time_ms=round((time.perf_counter() - start) * 1000, 2),
+                title=None, content_length=0, success=False,
+                error="TIMEOUT",
+            )
+        except httpx.ConnectError:
+            return AuditResult(
+                url=url, status_code=None,
+                response_time_ms=round((time.perf_counter() - start) * 1000, 2),
+                title=None, content_length=0, success=False,
+                error="CONNECTION_FAILED",
+            )
 
     elapsed_ms = (time.perf_counter() - start) * 1000
 
