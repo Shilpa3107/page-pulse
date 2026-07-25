@@ -85,12 +85,89 @@ async def audit(payload: AuditRequest) -> AuditResult:
 async def root():
     return """
     <html>
-        <head><title>Page Pulse</title></head>
-        <body style="font-family: sans-serif; max-width: 600px; margin: 60px auto;">
-            <h1>Page Pulse</h1>
-            <p>A production-grade URL audit API. POST a URL to <code>/audit</code> to get status, response time, and page metadata.</p>
-            <p>See <a href="/docs">/docs</a> for the full API contract.</p>
-            <footer style="margin-top: 40px; font-size: 0.9em; color: #666;">
+        <head>
+            <title>Page Pulse</title>
+            <style>
+                * { box-sizing: border-box; }
+                html, body {
+                    height: 100%;
+                    margin: 0;
+                }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    color: #1a1a1a;
+                    line-height: 1.6;
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 100vh;
+                }
+                header {
+                    padding: 20px 40px;
+                    border-bottom: 1px solid #e5e5e5;
+                }
+                header .brand {
+                    font-weight: 700;
+                    font-size: 1.2em;
+                }
+                main {
+                    flex: 1;
+                    max-width: 680px;
+                    width: 100%;
+                    margin: 0 auto;
+                    padding: 60px 24px;
+                }
+                h1 {
+                    font-size: 2.4em;
+                    margin-bottom: 0.1em;
+                }
+                .subtitle {
+                    color: #555;
+                    font-size: 1.1em;
+                    margin-bottom: 32px;
+                }
+                .endpoint-box {
+                    background: #f7f7f8;
+                    border: 1px solid #e5e5e5;
+                    border-radius: 8px;
+                    padding: 20px 24px;
+                    margin-bottom: 24px;
+                }
+                code {
+                    background: #eee;
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                    font-size: 0.9em;
+                }
+                a {
+                    color: #2563eb;
+                    text-decoration: none;
+                }
+                a:hover {
+                    text-decoration: underline;
+                }
+                footer {
+                    padding: 20px 40px;
+                    border-top: 1px solid #e5e5e5;
+                    font-size: 0.9em;
+                    color: #666;
+                    text-align: center;
+                }
+            </style>
+        </head>
+        <body>
+            <header>
+                <span class="brand">📡 Page Pulse</span>
+            </header>
+            <main>
+                <h1>Page Pulse</h1>
+                <p class="subtitle">A production-grade URL audit API — validation, timeouts, caching, rate limiting, and structured logging, built for real traffic.</p>
+                <div class="endpoint-box">
+                    <strong>POST</strong> <code>/audit</code>
+                    <p style="margin-bottom:0;">Send a URL, get back its status, response time, title, and content length.</p>
+                </div>
+                <p>See <a href="/docs">/docs</a> for the full interactive API reference and request/response schema.</p>
+            </main>
+            <footer>
                 Built for <a href="https://digitalheroesco.com" target="_blank">Digital Heroes Training Task</a>
             </footer>
         </body>
