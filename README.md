@@ -136,3 +136,15 @@ pytest -v
 ## CI
 
 GitHub Actions runs the full test suite on every push to `main` — see `.github/workflows/ci.yml`.
+
+## AI Usage
+
+I used Claude to clarify concepts, discuss design decisions, and troubleshoot a few implementation issues during development. The application was implemented, tested, and refined by me, and I verified and adapted the suggestions to fit the project requirements before using them.
+
+## Assumptions
+
+- Audit scope is limited to status code, response time, page title, content length, and success/failure — deliberately not attempting SEO or accessibility checks, to keep Task A's scope proportionate to a solo build.
+- Page title parsing is skipped for non-HTML responses (e.g. JSON, images) rather than attempted and returning nonsense.
+- Failed audits (timeout, connection error) are not cached, so a target site's transient outage doesn't get "stuck" as a cached failure for the full TTL window.
+- Rate limiting identifies clients by IP address; this doesn't account for shared IPs (e.g. behind a corporate NAT) or reverse proxies unless `X-Forwarded-For` handling is added.
+- Task B's "live build requirement" footer note is read as applying to Task A's deployed service; Task B's own deliverables (architecture doc, tech decision record, failure analysis, observability plan) are documents, not a second live build.
